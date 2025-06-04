@@ -1,7 +1,6 @@
-# Project-M 🚀
-**Backend del progetto di tesi**
+# AIDEPS
 
-## 📖 Descrizione
+## Descrizione
 Project-M è un backend sviluppato in **FastAPI** per la gestione dell'autenticazione, API protette e Machine Learning.  
 Il sistema permette di:
 - **Autenticazione con JWT** (Access Token & Refresh Token)
@@ -28,7 +27,7 @@ Il sistema permette di:
 
 ---
 
-## 🚀 **Come avviare il progetto**
+## **Come avviare il progetto**
 ### 1️⃣ **Clonare il repository**
 ```sh
 git clone https://github.com/tuo-utente/project-m.git
