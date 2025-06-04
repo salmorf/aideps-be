@@ -1,45 +1,38 @@
 # AIDEPS
 
-## Descrizione
-Project-M è un backend sviluppato in **FastAPI** per la gestione dell'autenticazione, API protette e Machine Learning.  
-Il sistema permette di:
-- **Autenticazione con JWT** (Access Token & Refresh Token)
-- **Protezione API con Bearer Token**
-- **Gestione utenti con MongoDB**
-- **Caricare dataset in formato Excel**
-- **Allenare modelli di Machine Learning** (Logistic Regression, Random Forest, SVC, KNN)
-- **Eseguire i modelli e ottenere predizioni**
-- **Visualizzare i plot delle metriche dei modelli**
-- **Gestione sicura delle variabili d'ambiente con `.env`**
+## Description
+Aideps is a backend developed with **FastAPI** for managing authentication, protected APIs, and Machine Learning workflows.  
+The system supports:
+- **JWT-based authentication** (Access Token & Refresh Token)
+- **API protection via Bearer Token**
+- **User management with MongoDB**
+- **Uploading datasets in Excel format**
+- **Training Machine Learning models**
+- **Running models and generating predictions**
+- **Displaying plots of model evaluation metrics**
+- **Secure environment variable handling with `.env` files**
 
 ---
 
-## ⚙️ **Tecnologie utilizzate**
-- 🐍 **FastAPI** - Framework Python per API REST
-- 🗄 **MongoDB** - Database NoSQL
-- 🔑 **JWT (JSON Web Token)** - Per l'autenticazione sicura
-- 📊 **Pandas** - Manipolazione dati e gestione dataset
-- 🤖 **Scikit-learn** - Machine Learning
-- 📈 **Matplotlib / Seaborn** - Visualizzazione delle metriche ML
-- 🔧 **Motor** - Driver asincrono per MongoDB
-- 🛠 **Python-Decouple** - Gestione variabili di configurazione `.env`
-- 🏗 **Uvicorn** - Server ASGI per FastAPI
+## Technologies Used
+- **FastAPI** – Python framework for building RESTful APIs  
+- **MongoDB** – NoSQL database for storing user and dataset information  
+- **JWT (JSON Web Token)** – Secure token-based authentication  
+- **Pandas** – Data manipulation and dataset handling  
+- **Scikit-learn** – Machine Learning library  
+- **Matplotlib / Seaborn** – Visualization of ML metrics  
+- **Motor** – Asynchronous driver for MongoDB  
+- **Python-Decouple** – Environment variable management via `.env` files  
+- **Uvicorn** – ASGI server for running FastAPI applications  
 
 ---
 
-## **Come avviare il progetto**
-### 1️⃣ **Clonare il repository**
-```sh
-git clone https://github.com/tuo-utente/project-m.git
+## How to Run the Project
+
+```bash
+git clone https://github.com/your-username/project-m.git
 cd project-m
-```
-### 2️⃣ **Avviare il progetto**
-```sh
-docker compose build --no-cache 
+docker compose build --no-cache
 docker compose up -d
-
-oppure
-
+or
 docker compose up --build -d
-```# aideps-be
-# aideps-be
