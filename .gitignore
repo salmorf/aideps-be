@@ -1,0 +1,4 @@
+**/dataset/*
+**/raw_labels/*
+**/saved_plots/*
+.env
