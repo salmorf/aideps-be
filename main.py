@@ -29,7 +29,7 @@ app.include_router(ml.router)
 app.include_router(user.router)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://135.181.217.246:3000", "http://aideps.kazaamlab.com:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

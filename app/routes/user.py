@@ -28,7 +28,7 @@ async def get_current_user_route(token: str = Depends(oauth2_scheme)):
         """ user_db["success"] = True """
         return {"success": True, **user_db}
     except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Token non valido o scaduto")
+        raise HTTPException(status_code=401, detail="Expired Token")
 
 
 @router.post("/", response_model=User)
@@ -44,14 +44,14 @@ async def create_user(user: User):
 async def login(user: Login) -> ResponseLogin:
     user_db: User = await users_collection.find_one({"email": user.email})
     if not user_db:
-        raise HTTPException(status_code=404, detail="email o password errati!")
+        raise HTTPException(status_code=404, detail="Wrong email or password!")
     if verify_password(user.password, user_db["password"]):
         access_token = create_access_token(
             data={"sub": user.email, "id": str(user_db["_id"])}
         )
         return {"success": True, "accessToken": access_token}
     else:
-        raise HTTPException(status_code=500, detail="email o password errati!")
+        raise HTTPException(status_code=500, detail="Wrong email or password!")
 
 
 @router.post("/register", response_model=ResponseRegister)
@@ -59,7 +59,7 @@ async def register_user(user: User) -> ResponseRegister:
     user_db = await users_collection.find_one({"email": user.email})
     if user_db:
         raise HTTPException(
-            status_code=409, detail="Utente con questa email già registrato!"
+            status_code=409, detail="User with this email already exists!"
         )
     hashed_password = hash_password(user.password)
     await users_collection.insert_one(
