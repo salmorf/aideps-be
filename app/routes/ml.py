@@ -1,13 +1,16 @@
 import os
 from PIL import Image
 import io
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from pathlib import Path
 from app.models.ml_models import InputModelUserData
 from app.services.ml_services import (  # type: ignore
     executeMLModelV2,
     load_model,
     preprocess_df_for_catboost_from_body,
+    predict_proba_catboost,
+    build_image_features_from_detections,
+    predict_proba_image_model,
 )
 from app.services.user_services import get_current_user
 from fastapi import UploadFile, File, Form
@@ -22,19 +25,82 @@ router = APIRouter(prefix="/ml", tags=["Modello IA"])
 
 @router.post(
     "/execute",
-    summary="Predice mastopessi per ogni record Excell e calcola accuratezza",
+    summary="Esegue predizione CatBoost o combinata con modello immagine (media)",
 )
 async def predict_one_v2(
+    request: Request,
     token: str = Depends(get_current_user),
-    input_array: InputModelUserData = Body(..., embed=True),
 ):
-    model_type = "catboost"
-    model = await load_model(model_type)
-    # dataframe = await preprocess_input_to_execute(input_array)
-    dataframe = await preprocess_df_for_catboost_from_body(input_array)
-    predict = await executeMLModelV2(dataframe, model, model_type)
+    content_type = request.headers.get("content-type", "").lower()
+    input_data: InputModelUserData | None = None
+    image_bytes: bytes | None = None
+    if content_type.startswith("application/json"):
+        body = await request.json()
+        payload = body.get("input_array") if isinstance(body, dict) else None
+        if not payload:
+            raise HTTPException(status_code=400, detail="Dati clinici mancanti")
+        try:
+            input_data = InputModelUserData(**payload)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"JSON non valido: {e}")
+    elif content_type.startswith("multipart/form-data"):
+        form = await request.form()
+        input_json = form.get("input_json")
+        if input_json:
+            try:
+                input_data = InputModelUserData.parse_raw(input_json)
+            except Exception as e:
+                raise HTTPException(
+                    status_code=400, detail=f"input_json non valido: {e}"
+                )
+        file_field = form.get("image_file")
+        if hasattr(file_field, "read"):
+            image_bytes = await file_field.read()  # UploadFile
+        if not input_json and not image_bytes:
+            raise HTTPException(
+                status_code=400,
+                detail="Nessun dato fornito: serve input_json e/o image_file",
+            )
+    else:
+        raise HTTPException(status_code=415, detail="Content-Type non supportato")
+
+    p_cat = None
+    if input_data is not None:
+        cat_model = await load_model("catboost")
+        df_cat = await preprocess_df_for_catboost_from_body(input_data)
+        p_cat = await predict_proba_catboost(cat_model, df_cat)
+        if not image_bytes:
+            label = "T Invertita" if p_cat <= 0.5 else "Altro"
+            return {"result": label, "proba_catboost": p_cat}
+
+    try:
+        image_pil = Image.open(io.BytesIO(image_bytes))
+        dpi = image_pil.info.get("dpi", (72, 72))
+        _, dpi_y = dpi
+        np_arr = np.frombuffer(image_bytes, np.uint8)
+        image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Immagine non valida")
+    engine = MedicalYOLOInference()
+    model_path = os.path.join("app", "ml_models", "best.pt")
+    if not os.path.exists(model_path):
+        raise HTTPException(status_code=500, detail="Modello YOLO best.pt non trovato")
+    engine.anatomical_correction_enabled = True
+    detections = getattr(engine, "last_detections", [])
+    img_model = await load_model("image")
+    feats = build_image_features_from_detections(detections, dpi_y)
+    p_img = predict_proba_image_model(img_model, feats)
+    if p_cat is None:
+        label = "T Invertita" if p_img >= 0.5 else "Altro"
+        return {"result": label, "proba_image": p_img}
+    p_avg = float((p_cat + p_img) / 2.0)
+    label = "T Invertita" if p_avg >= 0.5 else "Altro"
     return {
-        "result": predict,
+        "result": label,
+        "proba_catboost": p_cat,
+        "proba_image": p_img,
+        "proba_avg": p_avg,
     }
 
 

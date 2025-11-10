@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class InputModelUserData(BaseModel):
-    eta: int = Field(..., description="Età del paziente")
+    eta: float = Field(..., description="Età del paziente")
     grado_ptosi: str = Field(..., description="Grado di ptosi")
     volume_seno: str = Field(..., description="Volume del seno")
     desiderio_paziente: str = Field(..., description="Desiderio espresso dal paziente")
